@@ -72,7 +72,7 @@
             this.btnView.TabIndex = 2;
             this.btnView.Text = "Download";
             this.btnView.UseVisualStyleBackColor = true;
-            this.btnView.Click += new System.EventHandler(this.btnView_Click);
+            this.btnView.Click += new System.EventHandler(this.btnDownload_Click);
             // 
             // txtUrl
             // 

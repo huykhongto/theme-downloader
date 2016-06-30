@@ -19,6 +19,8 @@ namespace ThemeDownloader
     public partial class frmMain : Form
     {
         ChromiumWebBrowser m_chromeBrowser = null;
+        List<string> downloadedPages;
+        string currentDownloadUrl = "";
 
         public frmMain()
         {
@@ -27,17 +29,13 @@ namespace ThemeDownloader
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            downloadedPages = new List<string>();
             //InitComponents();
         }
 
         private void btnDevTool_Click(object sender, EventArgs e)
         {
             m_chromeBrowser.ShowDevTools();
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            m_chromeBrowser.FrameLoadStart += new EventHandler<FrameLoadStartEventArgs>(ChomeBrowser_LoadStart);
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -50,9 +48,10 @@ namespace ThemeDownloader
             }
         }
 
-        private void btnView_Click(object sender, EventArgs e)
+        private void btnDownload_Click(object sender, EventArgs e)
         {
-            InitComponents();
+            
+            InitComponents(txtUrl.Text);
         }
 
         private List<string> getResourceUrls(string dataStr, string startStr, string endStr)
@@ -88,7 +87,7 @@ namespace ThemeDownloader
                 try
                 {
                     string des = desFolder + url;
-                    string serverPath = txtUrl.Text.Substring(0, txtUrl.Text.LastIndexOf("/") + 1);
+                    string serverPath = currentDownloadUrl.Substring(0, currentDownloadUrl.LastIndexOf("/") + 1);
                     source = serverPath + url;
                     FileInfo file = new FileInfo(des);
                     DirectoryInfo dir = file.Directory;
@@ -150,31 +149,47 @@ namespace ThemeDownloader
                     downloadResources(imgFilesGif, des);
 
                     downloadResources(htmlFiles, des);
-                    int a = 0;
+                    //try to download more files from another pages
 
-                    //get all js file
+                    //string serverPath = currentDownloadUrl.Substring(0, currentDownloadUrl.LastIndexOf("/") + 1);
+                    //string source = "";
+                    //foreach (string htmlUrl in htmlFiles)
+                    //{
+                        
+                    //    source = serverPath + htmlUrl;
+                    //    m_chromeBrowser.Load(source);
+                    //}
+
 
                 });
             }
         }
 
-        private void InitComponents()
+        private void InitComponents(string url)
         {
             if (!Cef.IsInitialized)
             {
                 Cef.Initialize();
 
             }
-            if (m_chromeBrowser == null)
+
+            if(downloadedPages.Count() == 0 || !downloadedPages.Contains(url))
             {
-                m_chromeBrowser = new ChromiumWebBrowser(txtUrl.Text);
-                m_chromeBrowser.FrameLoadEnd += new EventHandler<FrameLoadEndEventArgs>(ChomeBrowser_LoadEnd);
-                pnlMain.Controls.Clear();
-                pnlMain.Controls.Add(m_chromeBrowser);
-            }
-            else
-            {
-                m_chromeBrowser.Load(txtUrl.Text);
+                if (m_chromeBrowser == null)
+                {
+                    m_chromeBrowser = new ChromiumWebBrowser(url);
+                    m_chromeBrowser.FrameLoadStart += new EventHandler<FrameLoadStartEventArgs>(ChomeBrowser_LoadStart);
+                    m_chromeBrowser.FrameLoadEnd += new EventHandler<FrameLoadEndEventArgs>(ChomeBrowser_LoadEnd);
+                    pnlMain.Controls.Clear();
+                    pnlMain.Controls.Add(m_chromeBrowser);
+                }
+                else
+                {
+                    m_chromeBrowser.Load(url);
+                }
+                currentDownloadUrl = url;
+                txtUrl.Invoke((MethodInvoker)(() => txtUrl.Text = url));
+                downloadedPages.Add(url);
             }
 
         }
