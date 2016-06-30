@@ -83,12 +83,15 @@ namespace ThemeDownloader
             WebClient Client = new WebClient();
             foreach (string url in resUrls)
             {
+                string tempUrl = url;
                 string source = "";
                 try
                 {
+                    if (url.Substring(0, 1) == "/")
+                        tempUrl = url.Substring(1, url.Length - 1);
                     string des = desFolder + url;
                     string serverPath = currentDownloadUrl.Substring(0, currentDownloadUrl.LastIndexOf("/") + 1);
-                    source = serverPath + url;
+                    source = serverPath + tempUrl;
                     FileInfo file = new FileInfo(des);
                     DirectoryInfo dir = file.Directory;
                     if (!file.Exists)
@@ -126,38 +129,51 @@ namespace ThemeDownloader
                     string header = html.Substring(start, end - start);
 
                     string body = html.Substring(end, html.Length - end);
+                    List<List<string>> resources = new List<List<string>>();
 
                     //get all css file
-                    List<string> cssFiles = getResourceUrls(html, "href=\"", ".css\"");
+                    resources.Add(getResourceUrls(html, "href=\"", ".css\""));
 
-                    List<string> jsFiles = getResourceUrls(html, "src=\"", ".js\"");
+                    resources.Add(getResourceUrls(html, "src=\"", ".js\""));
 
-                    List<string> imgFiles = getResourceUrls(body, "src=\"", ".png\"");
-                    List<string> imgFilesJpg = getResourceUrls(body, "src=\"", ".jpg\"");
-                    List<string> imgFilesGif = getResourceUrls(body, "src=\"", ".gif\"");
-                    List<string> htmlFiles = getResourceUrls(body, "href=\"", ".html\"");
+                    //resources.Add(getResourceUrls(body, "src=\"", ".png\""));
+                    //resources.Add( getResourceUrls(body, "src=\"", ".jpg\""));
+                    //resources.Add( getResourceUrls(body, "src=\"", ".gif\""));
+
+                    resources.Add(getResourceUrls(body, "=\"", ".png\""));
+                    resources.Add( getResourceUrls(body, "=\"", ".jpg\""));
+                    resources.Add(getResourceUrls(body, "=\"", ".gif\""));
+
+                    List<string> html1 = getResourceUrls(body, "href=\"", ".html\"");
+                    List<string> html2 = getResourceUrls(body, "href=\"", ".htm\"");
+                    resources.Add(html1);
+                    resources.Add(html2);
 
                     string des = txtSaveFoldler.Text;
                     if (string.IsNullOrEmpty(des))
                         des = @"D:\Temp\";
                     if (!des.EndsWith("\\"))
                         des += "\\";
-                    downloadResources(cssFiles, des);
-                    downloadResources(jsFiles, des);
-                    downloadResources(imgFiles, des);
-                    downloadResources(imgFilesJpg, des);
-                    downloadResources(imgFilesGif, des);
 
-                    downloadResources(htmlFiles, des);
+                    foreach (var source in resources)
+                    {
+                        downloadResources(source, des);
+                    }
+
                     //try to download more files from another pages
 
                     //string serverPath = currentDownloadUrl.Substring(0, currentDownloadUrl.LastIndexOf("/") + 1);
-                    //string source = "";
-                    //foreach (string htmlUrl in htmlFiles)
+                    //string url = "";
+                    //foreach (var htmlUrl in html1)
                     //{
+                    //    url = serverPath + htmlUrl;
+                    //    do
+                    //    {
+                            
+                    //    }
+                    //    while (m_chromeBrowser.IsLoading);
+                    //    InitComponents(url);
                         
-                    //    source = serverPath + htmlUrl;
-                    //    m_chromeBrowser.Load(source);
                     //}
 
 
